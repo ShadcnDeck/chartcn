@@ -38,8 +38,9 @@ export function RadarChart({ data }: RadarChartProps) {
             key={key}
             dataKey={key}
             fill={`var(--color-${key})`}
-            fillOpacity={0.4}
+            fillOpacity={0.35}
             stroke={`var(--color-${key})`}
+            strokeWidth={2}
           />
         ))}
         <ChartLegend content={<ChartLegendContent />} />

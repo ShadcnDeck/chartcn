@@ -1,7 +1,7 @@
 import type { ChartConfig } from "@/components/ui/chart"
 import type { ChartDataRow, ParsedChartData } from "@/types/chart"
 
-const PALETTE = [
+export const PALETTE = [
   "var(--chart-1)",
   "var(--chart-2)",
   "var(--chart-3)",
@@ -57,4 +57,50 @@ export function buildChartConfig(data: ParsedChartData): ChartConfig {
     }
   })
   return config
+}
+
+export interface SeriesTotal {
+  key: string
+  label: string
+  color: string
+  total: number
+}
+
+/** Sum of every numeric series, in the order the CSV columns appear. Used for
+ * the generic stat-card summary shown next to a chart. */
+export function computeSeriesTotals(data: ParsedChartData): SeriesTotal[] {
+  const series = getSeries(data)
+  const rows = toChartRows(data)
+
+  return series.map(({ key, label }, index) => {
+    const total = rows.reduce((sum, row) => {
+      const value = Number(row[key])
+      return sum + (Number.isFinite(value) ? value : 0)
+    }, 0)
+    return { key, label, color: PALETTE[index % PALETTE.length], total }
+  })
+}
+
+/** Percent change of the first numeric series from its first row to its last
+ * row. Returns null when it can't be computed (too few rows, zero baseline). */
+export function computeGrowth(data: ParsedChartData): number | null {
+  const series = getSeries(data)
+  if (series.length === 0) return null
+
+  const rows = toChartRows(data)
+  if (rows.length < 2) return null
+
+  const key = series[0].key
+  const first = Number(rows[0][key])
+  const last = Number(rows[rows.length - 1][key])
+  if (!Number.isFinite(first) || !Number.isFinite(last) || first === 0) return null
+
+  return ((last - first) / Math.abs(first)) * 100
+}
+
+export function formatCompactNumber(value: number): string {
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value)
 }

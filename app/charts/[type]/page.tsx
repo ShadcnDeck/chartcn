@@ -24,10 +24,12 @@ export default async function ChartDetailPage({ params }: ChartDetailPageProps) 
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-16">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-6 py-16 sm:py-20">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">{chartTypeLabels[type]}</h1>
-        <p className="text-muted-foreground">{chartTypeDescriptions[type]}</p>
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          {chartTypeLabels[type]}
+        </h1>
+        <p className="max-w-lg text-muted-foreground">{chartTypeDescriptions[type]}</p>
       </div>
       <ChartDetailClient type={type} />
     </main>

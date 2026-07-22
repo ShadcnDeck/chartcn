@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react"
 
 import { ChartPreview } from "@/components/chart-preview"
+import { ChartStats } from "@/components/charts/chart-stats"
+import { GrowthGauge } from "@/components/charts/growth-gauge"
 import { CodeBlock } from "@/components/code-block"
 import { CopyButton } from "@/components/copy-button"
 import { CsvPaste } from "@/components/data-input/csv-paste"
@@ -12,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Toggle } from "@/components/ui/toggle"
 import { generateComponentCode } from "@/lib/code-templates"
+import { computeGrowth } from "@/lib/chart-data"
 import { parseCSV } from "@/lib/csv-parser"
 import { sampleCSV } from "@/lib/sample-data"
 import type { ChartOptions, ChartType, ParsedChartData } from "@/types/chart"
@@ -28,6 +31,9 @@ export function ChartDetailClient({ type }: ChartDetailClientProps) {
     () => generateComponentCode(type, data, options),
     [type, data, options]
   )
+
+  const showSidePanel = type !== "pie"
+  const growth = type === "bar" || type === "line" || type === "area" ? computeGrowth(data) : null
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_3fr]">
@@ -50,19 +56,35 @@ export function ChartDetailClient({ type }: ChartDetailClientProps) {
         </Tabs>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <Card>
           <CardContent className="flex flex-col gap-4 pt-6">
             <ChartVariantToggles type={type} options={options} onChange={setOptions} />
-            <ChartPreview type={type} data={data} options={options} />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div className="min-w-0 flex-1">
+                <ChartPreview type={type} data={data} options={options} />
+              </div>
+              {showSidePanel && (
+                <div className="flex w-full shrink-0 flex-col gap-3 sm:w-44">
+                  {growth != null && (
+                    <div className="flex items-center justify-center rounded-lg bg-muted/40 py-3">
+                      <GrowthGauge value={growth} />
+                    </div>
+                  )}
+                  <ChartStats data={data} />
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-muted-foreground">Component code</h2>
-          <CopyButton getText={() => code} />
-        </div>
-        <CodeBlock code={code} />
+        <Card className="min-w-0 gap-0 overflow-hidden py-0">
+          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2.5">
+            <h2 className="font-mono text-xs text-muted-foreground">chart.tsx</h2>
+            <CopyButton getText={() => code} />
+          </div>
+          <CodeBlock code={code} />
+        </Card>
       </div>
     </div>
   )

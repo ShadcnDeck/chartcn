@@ -1,7 +1,8 @@
 "use client"
 
-import { CartesianGrid, Line, LineChart as RechartsLineChart, XAxis } from "recharts"
+import { CartesianGrid, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts"
 
+import { ChartBreakdownTooltip } from "@/components/charts/chart-breakdown-tooltip"
 import {
   ChartContainer,
   ChartLegend,
@@ -9,7 +10,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { CATEGORY_KEY, buildChartConfig, getSeries, toChartRows } from "@/lib/chart-data"
+import {
+  CATEGORY_KEY,
+  buildChartConfig,
+  formatCompactNumber,
+  getSeries,
+  toChartRows,
+} from "@/lib/chart-data"
 import type { ChartOptions, ParsedChartData } from "@/types/chart"
 
 interface LineChartProps {
@@ -25,14 +32,32 @@ export function LineChart({ data, options }: LineChartProps) {
   return (
     <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
       <RechartsLineChart accessibilityLayer data={rows}>
-        <CartesianGrid vertical={false} />
+        <CartesianGrid vertical={false} strokeDasharray="3 5" />
         <XAxis
           dataKey={CATEGORY_KEY}
           tickLine={false}
           axisLine={false}
-          tickMargin={8}
+          tickMargin={10}
         />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          width={40}
+          tickFormatter={(value: number) => formatCompactNumber(value)}
+        />
+        <ChartTooltip
+          content={
+            series.length > 1 ? (
+              <ChartBreakdownTooltip
+                config={chartConfig}
+                seriesOrder={series.map((s) => s.key)}
+              />
+            ) : (
+              <ChartTooltipContent />
+            )
+          }
+        />
         <ChartLegend content={<ChartLegendContent />} />
         {series.map(({ key }) => (
           <Line
@@ -40,8 +65,9 @@ export function LineChart({ data, options }: LineChartProps) {
             dataKey={key}
             type={options?.smooth ? "monotone" : "linear"}
             stroke={`var(--color-${key})`}
-            strokeWidth={2}
+            strokeWidth={2.5}
             dot={options?.showDots ?? true}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--card)" }}
           />
         ))}
       </RechartsLineChart>

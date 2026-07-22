@@ -22,7 +22,7 @@ export function CodeBlock({ code }: CodeBlockProps) {
 
   if (!html) {
     return (
-      <pre className="max-h-[500px] overflow-auto rounded-lg bg-neutral-950 p-4 text-sm text-neutral-100">
+      <pre className="max-h-[500px] overflow-auto bg-neutral-950 p-4 text-sm text-neutral-100">
         <code>{code}</code>
       </pre>
     )
@@ -30,7 +30,7 @@ export function CodeBlock({ code }: CodeBlockProps) {
 
   return (
     <div
-      className="max-h-[500px] overflow-auto rounded-lg text-sm [&_pre]:p-4"
+      className="max-h-[500px] overflow-auto text-sm [&_pre]:p-4"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )
