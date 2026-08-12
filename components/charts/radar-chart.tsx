@@ -22,9 +22,9 @@ interface RadarChartProps {
   options?: ChartOptions
 }
 
-export function RadarChart({ data }: RadarChartProps) {
+export function RadarChart({ data, options }: RadarChartProps) {
   const series = getSeries(data)
-  const chartConfig = buildChartConfig(data)
+  const chartConfig = buildChartConfig(data, options?.customColors)
   const rows = toChartRows(data)
 
   return (

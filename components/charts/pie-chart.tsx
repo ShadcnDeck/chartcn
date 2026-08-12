@@ -10,16 +10,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { formatCompactNumber, getSeries, toChartRows } from "@/lib/chart-data"
+import { formatCompactNumber, getSeries, resolveColor, toChartRows } from "@/lib/chart-data"
 import type { ChartOptions, ParsedChartData } from "@/types/chart"
-
-const PALETTE = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-]
 
 interface PieChartProps {
   data: ParsedChartData
@@ -39,7 +31,7 @@ export function PieChart({ data, options }: PieChartProps) {
     const category = String(row.category)
     chartConfig[category] = {
       label: category,
-      color: PALETTE[index % PALETTE.length],
+      color: resolveColor(category, index, options?.customColors),
     }
   })
 
@@ -72,7 +64,10 @@ export function PieChart({ data, options }: PieChartProps) {
           strokeWidth={4}
         >
           {rows.map((row, index) => (
-            <Cell key={`${row.category}-${index}`} fill={PALETTE[index % PALETTE.length]} />
+            <Cell
+              key={`${row.category}-${index}`}
+              fill={chartConfig[String(row.category)]?.color}
+            />
           ))}
           {options?.donut && (
             <Label

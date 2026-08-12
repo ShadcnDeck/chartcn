@@ -9,14 +9,14 @@ export const PALETTE = [
   "var(--chart-5)",
 ]
 
-/** CSS custom property names can't contain spaces, so series keys used as
+/** CSS custom property names can't contain spaces, so series/group keys used as
  * `--color-<key>` and recharts dataKeys must be safe identifiers. */
-function toSafeKey(header: string, index: number): string {
-  const slug = header
+export function toSafeKey(value: string, index: number, prefix = "series"): string {
+  const slug = value
     .trim()
     .replace(/[^a-zA-Z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "")
-  return slug ? `series_${slug}` : `series_${index}`
+  return slug ? `${prefix}_${slug}` : `${prefix}_${index}`
 }
 
 export interface ChartSeries {
@@ -48,15 +48,97 @@ export function toChartRows(data: ParsedChartData): ChartDataRow[] {
   })
 }
 
-export function buildChartConfig(data: ParsedChartData): ChartConfig {
+/** Custom color for `key` if one was picked in the UI, else the default palette color. */
+export function resolveColor(
+  key: string,
+  index: number,
+  customColors?: Record<string, string>
+): string {
+  return customColors?.[key] ?? PALETTE[index % PALETTE.length]
+}
+
+export function buildChartConfig(
+  data: ParsedChartData,
+  customColors?: Record<string, string>
+): ChartConfig {
   const config: ChartConfig = {}
   getSeries(data).forEach(({ key, label }, index) => {
     config[key] = {
       label,
-      color: PALETTE[index % PALETTE.length],
+      color: resolveColor(key, index, customColors),
     }
   })
   return config
+}
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const SLASH_DATE_RE = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/
+
+/** True when every value in the category column looks like a date (ISO or MM/DD/YYYY). */
+export function isDateAxis(data: ParsedChartData): boolean {
+  const categoryHeader = data.headers[0]
+  if (!categoryHeader || data.rows.length === 0) return false
+
+  return data.rows.every((row) => {
+    const value = String(row[categoryHeader] ?? "").trim()
+    if (!value) return false
+    if (!ISO_DATE_RE.test(value) && !SLASH_DATE_RE.test(value)) return false
+    return !Number.isNaN(new Date(value).getTime())
+  })
+}
+
+/** Formats a category-axis value as a short human date, e.g. "Jan 5". */
+export function formatDateTick(value: string | number): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date)
+}
+
+export interface ScatterPoint {
+  x: number
+  y: number
+}
+
+export interface ScatterGroup {
+  key: string
+  label: string
+  color: string
+  points: ScatterPoint[]
+}
+
+/** Groups rows by the category column into per-group X/Y point lists.
+ * Assumes the CSV has exactly 3 columns: Category, X, Y. */
+export function toScatterGroups(
+  data: ParsedChartData,
+  customColors?: Record<string, string>
+): ScatterGroup[] {
+  const categoryHeader = data.headers[0]
+  const xHeader = data.headers[1]
+  const yHeader = data.headers[2]
+  if (!categoryHeader || !xHeader || !yHeader) return []
+
+  const order: string[] = []
+  const byCategory = new Map<string, ScatterPoint[]>()
+
+  data.rows.forEach((row) => {
+    const category = String(row[categoryHeader] ?? "")
+    const x = Number(row[xHeader])
+    const y = Number(row[yHeader])
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return
+
+    if (!byCategory.has(category)) {
+      byCategory.set(category, [])
+      order.push(category)
+    }
+    byCategory.get(category)!.push({ x, y })
+  })
+
+  return order.map((category, index) => ({
+    key: category,
+    label: category,
+    color: resolveColor(category, index, customColors),
+    points: byCategory.get(category) ?? [],
+  }))
 }
 
 export interface SeriesTotal {
@@ -68,7 +150,10 @@ export interface SeriesTotal {
 
 /** Sum of every numeric series, in the order the CSV columns appear. Used for
  * the generic stat-card summary shown next to a chart. */
-export function computeSeriesTotals(data: ParsedChartData): SeriesTotal[] {
+export function computeSeriesTotals(
+  data: ParsedChartData,
+  customColors?: Record<string, string>
+): SeriesTotal[] {
   const series = getSeries(data)
   const rows = toChartRows(data)
 
@@ -77,7 +162,7 @@ export function computeSeriesTotals(data: ParsedChartData): SeriesTotal[] {
       const value = Number(row[key])
       return sum + (Number.isFinite(value) ? value : 0)
     }, 0)
-    return { key, label, color: PALETTE[index % PALETTE.length], total }
+    return { key, label, color: resolveColor(key, index, customColors), total }
   })
 }
 

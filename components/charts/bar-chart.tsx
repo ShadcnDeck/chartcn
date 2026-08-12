@@ -19,8 +19,10 @@ import {
 import {
   CATEGORY_KEY,
   buildChartConfig,
+  formatDateTick,
   formatCompactNumber,
   getSeries,
+  isDateAxis,
   toChartRows,
 } from "@/lib/chart-data"
 import type { ChartOptions, ParsedChartData } from "@/types/chart"
@@ -32,12 +34,20 @@ interface BarChartProps {
 
 export function BarChart({ data, options }: BarChartProps) {
   const series = getSeries(data)
-  const chartConfig = buildChartConfig(data)
+  const chartConfig = buildChartConfig(data, options?.customColors)
   const rows = toChartRows(data)
+  const stackMode = options?.stackMode ?? "none"
+  const dateAxis = isDateAxis(data)
 
   return (
     <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
-      <RechartsBarChart accessibilityLayer data={rows} barCategoryGap="30%" barGap={4}>
+      <RechartsBarChart
+        accessibilityLayer
+        data={rows}
+        barCategoryGap="30%"
+        barGap={4}
+        stackOffset={stackMode === "percent" ? "expand" : undefined}
+      >
         <defs>
           {series.map(({ key }) => (
             <linearGradient key={key} id={`fill-${key}`} x1="0" y1="0" x2="0" y2="1">
@@ -52,16 +62,23 @@ export function BarChart({ data, options }: BarChartProps) {
           tickLine={false}
           axisLine={false}
           tickMargin={10}
+          tickFormatter={dateAxis ? formatDateTick : undefined}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
           tickMargin={8}
           width={40}
-          tickFormatter={(value: number) => formatCompactNumber(value)}
+          tickFormatter={
+            stackMode === "percent"
+              ? (value: number) =>
+                  new Intl.NumberFormat("en-US", { style: "percent" }).format(value)
+              : (value: number) => formatCompactNumber(value)
+          }
         />
         <ChartTooltip
           cursor={{ fill: "var(--muted)" }}
+          labelFormatter={dateAxis ? (label) => formatDateTick(String(label)) : undefined}
           content={
             series.length > 1 ? (
               <ChartBreakdownTooltip
@@ -79,9 +96,9 @@ export function BarChart({ data, options }: BarChartProps) {
             key={key}
             dataKey={key}
             fill={`url(#fill-${key})`}
-            radius={options?.stacked ? [3, 3, 3, 3] : [8, 8, 8, 8]}
-            maxBarSize={options?.stacked ? 48 : 36}
-            stackId={options?.stacked ? "stack" : undefined}
+            radius={stackMode !== "none" ? [3, 3, 3, 3] : [8, 8, 8, 8]}
+            maxBarSize={stackMode !== "none" ? 48 : 36}
+            stackId={stackMode !== "none" ? "stack" : undefined}
           />
         ))}
       </RechartsBarChart>

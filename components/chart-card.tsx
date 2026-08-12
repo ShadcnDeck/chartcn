@@ -1,5 +1,15 @@
 import Link from "next/link"
-import { AreaChart, BarChart3, LineChart, PieChart, Radar, type LucideIcon } from "lucide-react"
+import {
+  AreaChart,
+  BarChart3,
+  ChartNoAxesCombined,
+  Gauge,
+  LineChart,
+  PieChart,
+  Radar,
+  ScatterChart,
+  type LucideIcon,
+} from "lucide-react"
 
 import { ChartPreview } from "@/components/chart-preview"
 import {
@@ -24,8 +34,11 @@ const chartIcons: Record<ChartType, LucideIcon> = {
   bar: BarChart3,
   line: LineChart,
   area: AreaChart,
+  combo: ChartNoAxesCombined,
   pie: PieChart,
   radar: Radar,
+  scatter: ScatterChart,
+  radial: Gauge,
 }
 
 export function ChartCard({ type }: ChartCardProps) {

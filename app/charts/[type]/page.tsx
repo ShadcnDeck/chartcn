@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 
 import { ChartDetailClient } from "@/components/chart-detail-client"
@@ -31,7 +32,9 @@ export default async function ChartDetailPage({ params }: ChartDetailPageProps) 
         </h1>
         <p className="max-w-lg text-muted-foreground">{chartTypeDescriptions[type]}</p>
       </div>
-      <ChartDetailClient type={type} />
+      <Suspense fallback={null}>
+        <ChartDetailClient type={type} />
+      </Suspense>
     </main>
   )
 }

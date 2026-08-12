@@ -1,8 +1,7 @@
 "use client"
 
-import { CartesianGrid, Line, LineChart as RechartsLineChart, XAxis, YAxis } from "recharts"
+import { Bar, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 
-import { ChartBreakdownTooltip } from "@/components/charts/chart-breakdown-tooltip"
 import {
   ChartContainer,
   ChartLegend,
@@ -21,20 +20,21 @@ import {
 } from "@/lib/chart-data"
 import type { ChartOptions, ParsedChartData } from "@/types/chart"
 
-interface LineChartProps {
+interface ComboChartProps {
   data: ParsedChartData
   options?: ChartOptions
 }
 
-export function LineChart({ data, options }: LineChartProps) {
+export function ComboChart({ data, options }: ComboChartProps) {
   const series = getSeries(data)
   const chartConfig = buildChartConfig(data, options?.customColors)
   const rows = toChartRows(data)
   const dateAxis = isDateAxis(data)
+  const renderTypes = options?.seriesRenderType ?? {}
 
   return (
     <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
-      <RechartsLineChart accessibilityLayer data={rows}>
+      <ComposedChart accessibilityLayer data={rows}>
         <CartesianGrid vertical={false} strokeDasharray="3 5" />
         <XAxis
           dataKey={CATEGORY_KEY}
@@ -52,30 +52,31 @@ export function LineChart({ data, options }: LineChartProps) {
         />
         <ChartTooltip
           labelFormatter={dateAxis ? (label) => formatDateTick(String(label)) : undefined}
-          content={
-            series.length > 1 ? (
-              <ChartBreakdownTooltip
-                config={chartConfig}
-                seriesOrder={series.map((s) => s.key)}
-              />
-            ) : (
-              <ChartTooltipContent />
-            )
-          }
+          content={<ChartTooltipContent />}
         />
         <ChartLegend content={<ChartLegendContent />} />
-        {series.map(({ key }) => (
-          <Line
-            key={key}
-            dataKey={key}
-            type={options?.smooth ? "monotone" : "linear"}
-            stroke={`var(--color-${key})`}
-            strokeWidth={2.5}
-            dot={options?.showDots ?? true}
-            activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--card)" }}
-          />
-        ))}
-      </RechartsLineChart>
+        {series.map(({ key }, index) => {
+          const renderAs = renderTypes[key] ?? (index === 0 ? "bar" : "line")
+          return renderAs === "line" ? (
+            <Line
+              key={key}
+              dataKey={key}
+              type="monotone"
+              stroke={`var(--color-${key})`}
+              strokeWidth={2.5}
+              dot={{ r: 3 }}
+            />
+          ) : (
+            <Bar
+              key={key}
+              dataKey={key}
+              fill={`var(--color-${key})`}
+              radius={[6, 6, 0, 0]}
+              maxBarSize={36}
+            />
+          )
+        })}
+      </ComposedChart>
     </ChartContainer>
   )
 }

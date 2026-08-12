@@ -1,5 +1,5 @@
 import Papa from "papaparse"
-import type { ChartDataRow, ParsedChartData } from "@/types/chart"
+import type { ChartDataRow, ChartType, ParsedChartData } from "@/types/chart"
 
 const MAX_ROWS = 500
 const MAX_SERIES = 10
@@ -86,4 +86,27 @@ export function parseCSV(csv: string): ParsedChartData {
     rows,
     error: warnings.length > 0 ? warnings.join(" ") : undefined,
   }
+}
+
+/** Inverse of parseCSV — serializes parsed data back to CSV text, e.g. for
+ * sharing/saving so any input tab (paste/upload/table) round-trips the same way. */
+export function toCSV(data: ParsedChartData): string {
+  const rows = data.rows.map((row) => data.headers.map((header) => row[header] ?? ""))
+  return Papa.unparse([data.headers, ...rows])
+}
+
+const COLUMN_REQUIREMENTS: Partial<Record<ChartType, { count: number; hint: string }>> = {
+  pie: { count: 2, hint: "Category,Value" },
+  radial: { count: 2, hint: "Category,Value" },
+  scatter: { count: 3, hint: "Category,X,Y" },
+}
+
+/** Warns when a chart type's fixed CSV shape (e.g. pie/radial's Category,Value or
+ * scatter's Category,X,Y) isn't met. Returns undefined when there's nothing to warn about. */
+export function validateColumnsForType(type: ChartType, data: ParsedChartData): string | undefined {
+  const requirement = COLUMN_REQUIREMENTS[type]
+  if (!requirement || data.headers.length === 0) return undefined
+  if (data.headers.length === requirement.count) return undefined
+
+  return `${type[0].toUpperCase()}${type.slice(1)} charts expect exactly ${requirement.count} columns (${requirement.hint}).`
 }
