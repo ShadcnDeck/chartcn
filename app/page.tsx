@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { parseCSV } from "@/lib/csv-parser"
 import { sampleCSV } from "@/lib/sample-data"
 
-const GITHUB_URL = "https://github.com/ShadcnDeck/shadcn-charts"
+const GITHUB_URL = "https://github.com/ShadcnDeck/chartcn"
 
 const chartLinks = [
   { type: "bar", label: "Bar", icon: BarChart3 },

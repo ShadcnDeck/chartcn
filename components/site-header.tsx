@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ShadcnDeckLogo } from "@/components/shadcndeck-logo"
 import { ThemeToggle } from "@/components/theme-toggle"
 
-const GITHUB_URL = "https://github.com/ShadcnDeck/shadcn-charts"
+const GITHUB_URL = "https://github.com/ShadcnDeck/chartcn"
 
 export function SiteHeader() {
   return (
