@@ -11,8 +11,7 @@ import { cn } from "@/lib/utils"
 import { parseCSV } from "@/lib/csv-parser"
 import { sampleCSV } from "@/lib/sample-data"
 
-// TODO: replace with the project's actual GitHub repo URL once created.
-const GITHUB_URL = "#"
+const GITHUB_URL = "https://github.com/ShadcnDeck/shadcn-charts"
 
 const chartLinks = [
   { type: "bar", label: "Bar", icon: BarChart3 },
@@ -31,7 +30,7 @@ const installSteps = [
   {
     title: "Make sure Recharts is installed",
     body: "The actual bars, lines, and shapes are rendered by Recharts under the hood.",
-    command: "npm install recharts",
+    command: "pnpm install recharts",
   },
 ]
 

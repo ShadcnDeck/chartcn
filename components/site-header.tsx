@@ -1,26 +1,44 @@
 import Link from "next/link"
 
+import { ShadcnDeckLogo } from "@/components/shadcndeck-logo"
 import { ThemeToggle } from "@/components/theme-toggle"
+
+const GITHUB_URL = "https://github.com/ShadcnDeck/shadcn-charts"
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="flex size-6 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
-            C
-          </span>
-          shadcn-charts
-        </Link>
-        <nav className="flex items-center gap-1">
-          <Link
-            href="/charts"
-            className="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Charts
+    <header className="sticky top-0 z-40 flex min-h-16 w-full shrink-0 items-center justify-center border-b bg-background/60 backdrop-blur-sm">
+      <div className="mx-auto flex h-full w-full max-w-350 items-center px-4 min-[1800px]:max-w-384 sm:px-6">
+        <div className="flex w-full items-center justify-between">
+          <Link href="/" aria-label="Chartcn home" className="flex items-center gap-2.5">
+            <ShadcnDeckLogo className="size-8 text-foreground" />
+            <span className="flex items-baseline gap-1.5 whitespace-nowrap">
+              <span className="text-2xl font-semibold tracking-tight">Chartcn</span>
+              <span className="text-base text-muted-foreground">by ShadcnDeck</span>
+            </span>
           </Link>
-          <ThemeToggle />
-        </nav>
+
+          <nav className="flex items-center gap-6">
+            <Link
+              href="/charts"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Charts
+            </Link>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              GitHub
+            </a>
+          </nav>
+
+          <div className="flex items-center">
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
     </header>
   )
